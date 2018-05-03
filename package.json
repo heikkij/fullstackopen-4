@@ -4,12 +4,16 @@
   "description": "Full stack open 2018 (part 4)",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "watch": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "author": "Heikki J",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.4",
+    "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "mongoose": "^5.0.17"
   },

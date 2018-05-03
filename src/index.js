@@ -1,4 +1,4 @@
-const http = require('http')
+// const http = require('http')
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
@@ -17,7 +17,9 @@ module.exports = Blog
 app.use(cors())
 app.use(bodyParser.json())
 
-const mongoUrl = 'mongodb://localhost/bloglist'
+require('dotenv').config()
+
+const mongoUrl = process.env.MONGODB_URI
 mongoose.connect(mongoUrl)
 
 app.get('/api/blogs', (request, response) => {
