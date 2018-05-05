@@ -30,5 +30,10 @@ module.exports = {
           "error", { "before": true, "after": true }
       ],
       "no-console": 0
+  },
+  "globals": {
+    "test": true,
+    "expect": true,
+    "describe": true
   }
 };
