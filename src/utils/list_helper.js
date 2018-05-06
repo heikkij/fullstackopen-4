@@ -49,7 +49,7 @@ const mostBlogs = (blogs) => {
       blogs: author.blogs.length,
     }
   })
-  const maxBlogs = Math.max.apply(Math, blogCounts.map((o) => o.blogs))
+  const maxBlogs = Math.max.apply(Math, blogCounts.map((b) => b.blogs))
   return blogCounts.find((b) => b.blogs === maxBlogs)
 }
 
@@ -61,7 +61,7 @@ const mostLikes = (blogs) => {
       likes: author.blogs.reduce((acc, blog) => acc + blog.likes, 0),
     }
   })
-  const maxLikes = Math.max.apply(Math, blogLikes.map((o) => o.likes))
+  const maxLikes = Math.max.apply(Math, blogLikes.map((b) => b.likes))
   return blogLikes.find((b) => b.likes === maxLikes)
 }
 
