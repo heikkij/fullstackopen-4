@@ -17,9 +17,8 @@ const formatAuthorBlog = (blog) => {
   }
 }
 
-const totalLikes = (blogs) => {
-  return blogs.reduce(((acc, blog) => acc + blog.likes), 0)
-}
+const totalLikes = (blogs) => blogs.reduce(((acc, blog) => acc + blog.likes), 0)
+const totalBlogs = (blogs) => blogs.length
 
 const favoriteBlog = (blogs) => {
   const [head, ...tail] = blogs
@@ -46,7 +45,7 @@ const mostBlogs = (blogs) => {
   const blogCounts = blogsByAuthor.map((author) => {
     return {
       author: author.author,
-      blogs: author.blogs.length,
+      blogs: totalBlogs(author.blogs),
     }
   })
   const maxBlogs = Math.max.apply(Math, blogCounts.map((b) => b.blogs))
@@ -58,7 +57,7 @@ const mostLikes = (blogs) => {
   const blogLikes = blogsByAuthor.map((author) => {
     return {
       author: author.author,
-      likes: author.blogs.reduce((acc, blog) => acc + blog.likes, 0),
+      likes: totalLikes(author.blogs),
     }
   })
   const maxLikes = Math.max.apply(Math, blogLikes.map((b) => b.likes))
