@@ -6,14 +6,18 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs.map(Blog.format))
 })
 
-blogsRouter.post('/', (request, response) => {
-  const blog = new Blog(request.body)
-
-  blog
-    .save()
-    .then(result => {
-      response.status(201).json(result)
-    })
+blogsRouter.post('/', async (request, response) => {
+  try {
+    if (request.body.title === undefined) {
+      return response.status(400).json({ error: 'title missing' })
+    }
+    const blog = new Blog(request.body)
+    const savedBlog = await blog.save()
+    response.status(201).json(savedBlog)
+  } catch (exception) {
+    console.log(exception)
+    response.status(500).json({ error: 'save failed' })
+  }
 })
 
 module.exports = blogsRouter

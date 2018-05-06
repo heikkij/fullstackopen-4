@@ -34,15 +34,18 @@ const initialBlogs = [
     url: 'http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html',
     likes: 0,
   },
+]
+
+const newBlog =
   {
     title: 'Type wars',
     author: 'Robert C. Martin',
     url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
     likes: 2,
-  },
-]
+  }
 
-beforeAll(async () => {
+
+beforeAll( async () => {
   await Blog.remove({})
 
   initialBlogs.forEach(async (blog) => {
@@ -73,6 +76,27 @@ describe('when api is called by get', async () => {
     const response = await api.get('/api/blogs')
     const titles = response.body.map(r => r.title)
     expect(titles).toContain('React patterns')
+  })
+
+})
+
+describe('when api is called by post', async () => {
+
+  test('valid blog is saved', async () => {
+    await api.post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+    const response = await api.get('/api/blogs')
+    const titles = response.body.map(b => b.title)
+    expect(response.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).toContain('Type wars')
+  })
+
+  test('invalid blog is not saved', async () => {
+    await api.post('/api/blogs')
+      .send({})
+      .expect(400)
   })
 
 })
