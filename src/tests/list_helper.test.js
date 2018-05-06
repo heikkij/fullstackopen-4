@@ -127,3 +127,29 @@ describe('most blogs', () => {
   })
 
 })
+
+describe('most likes', () => {
+  test('of empty list is undefined', () => {
+    const result = listHelper.mostLikes([])
+    expect(result).toBeUndefined
+  })
+
+  test('of one item list is found corectly', () => {
+    const result = listHelper.mostLikes(oneBlog)
+    const expected = {
+      author: 'Robert C. Martin',
+      likes: 2,
+    }
+    expect(result).toEqual(expected)
+  })
+
+  test('of a bigger list is found correctly', () => {
+    const result = listHelper.mostLikes(blogs)
+    const expected = {
+      author: 'Edsger W. Dijkstra',
+      likes: 17,
+    }
+    expect(result).toEqual(expected)
+  })
+
+})

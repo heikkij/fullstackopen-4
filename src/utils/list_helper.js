@@ -53,8 +53,21 @@ const mostBlogs = (blogs) => {
   return blogCounts.find((b) => b.blogs === maxBlogs)
 }
 
+const mostLikes = (blogs) => {
+  const blogsByAuthor = groupBlogsByAuthor(blogs)
+  const blogLikes = blogsByAuthor.map((author) => {
+    return {
+      author: author.author,
+      likes: author.blogs.reduce((acc, blog) => acc + blog.likes, 0),
+    }
+  })
+  const maxLikes = Math.max.apply(Math, blogLikes.map((o) => o.likes))
+  return blogLikes.find((b) => b.likes === maxLikes)
+}
+
 module.exports = {
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 }
