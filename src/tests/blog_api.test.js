@@ -44,6 +44,14 @@ const newBlog =
     likes: 2,
   }
 
+const newNoLikesBlog =
+  {
+    title: 'Building a React App from Scratch',
+    author: 'Bertalan Miklos',
+    url: 'https://blog.risingstack.com/building-react-app-from-scratch-live-stream/',
+  }
+
+
 
 beforeAll( async () => {
   await Blog.remove({})
@@ -91,6 +99,16 @@ describe('when api is called by post', async () => {
     const titles = response.body.map(b => b.title)
     expect(response.body.length).toBe(initialBlogs.length + 1)
     expect(titles).toContain('Type wars')
+  })
+
+  test('valid blog without likes is saved with zero likes', async () => {
+    await api.post('/api/blogs')
+      .send(newNoLikesBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+    const response = await api.get('/api/blogs')
+    const addedBlog = response.body.find(blog => blog.title === newNoLikesBlog.title)
+    expect(addedBlog.likes).toBe(0)
   })
 
   test('invalid blog is not saved', async () => {
