@@ -51,6 +51,17 @@ const newNoLikesBlog =
     url: 'https://blog.risingstack.com/building-react-app-from-scratch-live-stream/',
   }
 
+const newNoTitleBlog =
+  {
+    author: 'Tamas Kadlecsik',
+    url: 'https://blog.risingstack.com/node-js-10-lts-feature-breakdown/',
+  }
+
+const newNoUrlBlog =
+  {
+    title: 'Node v10 is Here - Feature Breakdown!',
+    author: 'Tamas Kadlecsik',
+  }
 
 
 beforeAll( async () => {
@@ -111,9 +122,15 @@ describe('when api is called by post', async () => {
     expect(addedBlog.likes).toBe(0)
   })
 
-  test('invalid blog is not saved', async () => {
+  test('blog without title is not saved', async () => {
     await api.post('/api/blogs')
-      .send({})
+      .send(newNoTitleBlog)
+      .expect(400)
+  })
+
+  test('blog without url is not saved', async () => {
+    await api.post('/api/blogs')
+      .send(newNoUrlBlog)
       .expect(400)
   })
 
