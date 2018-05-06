@@ -101,3 +101,29 @@ describe('favorite blog', () => {
   })
 
 })
+
+describe('most blogs', () => {
+  test('of empty list is undefined', () => {
+    const result = listHelper.mostBlogs([])
+    expect(result).toBeUndefined
+  })
+
+  test('of one item list is found corectly', () => {
+    const result = listHelper.mostBlogs(oneBlog)
+    const expected = {
+      author: 'Robert C. Martin',
+      blogs: 1,
+    }
+    expect(result).toEqual(expected)
+  })
+
+  test('of a bigger list is found correctly', () => {
+    const result = listHelper.mostBlogs(blogs)
+    const expected = {
+      author: 'Robert C. Martin',
+      blogs: 3,
+    }
+    expect(result).toEqual(expected)
+  })
+
+})
