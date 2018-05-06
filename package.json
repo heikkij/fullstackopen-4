@@ -4,10 +4,10 @@
   "description": "Full stack open 2018 (part 4)",
   "main": "index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "watch": "nodemon src/index.js",
-    "lint": "eslint .",
-    "test": "jest --verbose"
+    "start": "cross-env NODE_ENV=production node src/index.js",
+    "watch": "cross-env NODE_ENV=development nodemon src/index.js",
+    "test": "cross-env NODE_ENV=test jest --verbose",
+    "lint": "eslint ."
   },
   "author": "Heikki J",
   "license": "ISC",
@@ -18,8 +18,11 @@
     "mongoose": "^5.0.17"
   },
   "devDependencies": {
+    "babel-eslint": "^8.2.3",
+    "cross-env": "^5.1.4",
     "eslint": "^4.19.1",
     "jest": "^22.4.3",
-    "nodemon": "^1.17.3"
+    "nodemon": "^1.17.3",
+    "supertest": "^3.0.0"
   }
 }

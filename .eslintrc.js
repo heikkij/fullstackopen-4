@@ -3,6 +3,7 @@ module.exports = {
       "es6": true,
       "node": true
   },
+  "parser": "babel-eslint",
   "extends": "eslint:recommended",
   "rules": {
       "indent": [
@@ -34,6 +35,8 @@ module.exports = {
   "globals": {
     "test": true,
     "expect": true,
-    "describe": true
+    "describe": true,
+    "beforeAll": true,
+    "afterAll": true
   }
 };
