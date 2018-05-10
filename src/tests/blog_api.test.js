@@ -6,10 +6,10 @@ const { initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog, blo
 
 describe('when api is called by get', async () => {
 
-  beforeAll( async () => {
+  beforeAll(async () => {
     await Blog.remove({})
     const blogs = initialBlogs.map(blog => new Blog(blog))
-    await Promise.all(blogs.map(blog => blog.save))
+    await Promise.all(blogs.map(blog => blog.save()))
   })
 
   test('all blogs are returned as json by API', async () => {
@@ -31,7 +31,7 @@ describe('when api is called by get', async () => {
 
 describe('when api is called by post', async () => {
 
-  beforeAll( async () => {
+  beforeAll(async () => {
     await Blog.remove({})
   })
 
@@ -87,6 +87,46 @@ describe('when api is called by post', async () => {
     expect(blogsInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length)
   })
 
+})
+
+describe('when api is called by delete', async () => {
+
+  const testId = '5af1244ed0a939f7e4681785'
+  const invalidId = '5af44c60d77e1414e021bf8b'
+
+  beforeAll(async () => {
+    newBlog._id = testId
+    await Blog.remove({})
+    const blogs = initialBlogs.concat(newBlog).map(blog => new Blog(blog))
+    await Promise.all(blogs.map(blog => blog.save()))
+  })
+
+  test('blog is deleted', async () => {
+    const blogsInDatabaseBefore = await blogsInDb()
+
+    await api.delete(`/api/blogs/${testId}`)
+      .expect(204)
+
+    const blogInDatabaseAfter = await blogsInDb()
+
+    const titles = blogInDatabaseAfter.map(r => r.title)
+
+    expect(titles).not.toContain(newBlog.title)
+    expect(blogInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length - 1)
+
+  })
+
+  test('blog is not deleted with invalid call', async () => {
+    const blogsInDatabaseBefore = await blogsInDb()
+
+    await api.delete(`/api/blogs/${invalidId}`)
+      .expect(404)
+
+    const blogInDatabaseAfter = await blogsInDb()
+
+    expect(blogInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length)
+
+  })
 })
 
 afterAll(() => {
