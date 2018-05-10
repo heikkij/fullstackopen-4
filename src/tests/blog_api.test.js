@@ -129,6 +129,35 @@ describe('when api is called by delete', async () => {
   })
 })
 
+describe('when api is called by put', async () => {
+
+  let testId
+
+  beforeAll(async () => {
+    newBlog._id = testId
+    await Blog.remove({})
+    const blog = new Blog(newBlog)
+    const testBlog = await blog.save()
+    testId = testBlog.id
+  })
+
+  test('blog is updated', async () => {
+    const blogsInDatabaseBefore = await blogsInDb()
+    const likesBefore = blogsInDatabaseBefore[0].likes
+
+    await api.put(`/api/blogs/${testId}`)
+      .send({ likes: likesBefore + 1 })
+      .expect(200)
+
+    const blogsInDatabaseAfter = await blogsInDb()
+    const likesAfter = blogsInDatabaseAfter[0].likes
+
+    expect(likesAfter).toBe(likesBefore + 1)
+
+  })
+
+})
+
 afterAll(() => {
   server.close()
 })
