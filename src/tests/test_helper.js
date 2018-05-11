@@ -1,4 +1,5 @@
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const initialBlogs = [
   {
@@ -60,9 +61,22 @@ const newNoUrlBlog =
     author: 'Tamas Kadlecsik',
   }
 
+const newUser =
+  {
+    username: 'mokoma',
+    name: 'Marko Annala',
+    password: 'password',
+    adult: true,
+  }
+
 const blogsInDb = async () => {
   const blogs = await Blog.find({})
   return blogs
+}
+
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users
 }
 
 module.exports = {
@@ -72,4 +86,6 @@ module.exports = {
   newNoTitleBlog,
   newNoUrlBlog,
   blogsInDb,
+  newUser,
+  usersInDb,
 }

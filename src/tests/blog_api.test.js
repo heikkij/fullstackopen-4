@@ -2,9 +2,10 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const { initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog, blogsInDb } = require('./test_helper')
+const User = require('../models/user')
+const { initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog, newUser, blogsInDb, usersInDb } = require('./test_helper')
 
-describe('when api is called by get', async () => {
+describe('when blog api is called by get', async () => {
 
   beforeAll(async () => {
     await Blog.remove({})
@@ -21,7 +22,7 @@ describe('when api is called by get', async () => {
 
     expect(response.body.length).toBe(blogsInDatabase.length)
 
-    const titles = response.body.map(n => n.title)
+    const titles = response.body.map(b => b.title)
     blogsInDatabase.forEach(blog => {
       expect(titles).toContain(blog.title)
     })
@@ -29,7 +30,7 @@ describe('when api is called by get', async () => {
 
 })
 
-describe('when api is called by post', async () => {
+describe('when blog api is called by post', async () => {
 
   beforeAll(async () => {
     await Blog.remove({})
@@ -89,7 +90,7 @@ describe('when api is called by post', async () => {
 
 })
 
-describe('when api is called by delete', async () => {
+describe('when blog api is called by delete', async () => {
 
   const testId = '5af1244ed0a939f7e4681785'
   const invalidId = '5af44c60d77e1414e021bf8b'
@@ -129,7 +130,7 @@ describe('when api is called by delete', async () => {
   })
 })
 
-describe('when api is called by put', async () => {
+describe('when blog api is called by put', async () => {
 
   let testId
 
@@ -157,6 +158,76 @@ describe('when api is called by put', async () => {
   })
 
 })
+
+describe('when user api is called by get', async () => {
+  beforeAll(async () => {
+    await User.remove({})
+    const user = new User(newUser)
+    await user.save()
+  })
+
+  test('all users are returned as json by API', async () => {
+    const usersInDatabase = await usersInDb()
+
+    const response = await api.get('/api/users')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(response.body.length).toBe(usersInDatabase.length)
+
+    const usernames = response.body.map(u => u.username)
+    usersInDatabase.forEach(user => {
+      expect(usernames).toContain(user.username)
+    })
+  })
+
+})
+
+describe('when user api is called by post', async () => {
+  beforeAll(async () => {
+    await User.remove({})
+    const user = new User(newUser)
+    await user.save()
+  })
+
+  test('and there is initially one user at db', async () => {
+    const usersBeforeOperation = await usersInDb()
+
+    const secondUser = {
+      username: 'battlebeast',
+      name: 'Noora Louhimo',
+      password: 'password'
+    }
+
+    await api
+      .post('/api/users')
+      .send(secondUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAfterOperation = await usersInDb()
+    expect(usersAfterOperation.length).toBe(usersBeforeOperation.length + 1)
+    const usernames = usersAfterOperation.map(u => u.username)
+    expect(usernames).toContain(secondUser.username)
+  })
+
+  test('fails if same user exists at db', async () => {
+    const usersBeforeOperation = await usersInDb()
+
+    const sameUser = Object.assign({}, newUser)
+
+    const result = await api
+      .post('/api/users')
+      .send(sameUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body).toEqual({ error: 'username must be unique' })
+    const usersAfterOperation = await usersInDb()
+    expect(usersAfterOperation.length).toBe(usersBeforeOperation.length)
+  })
+})
+
 
 afterAll(() => {
   server.close()
