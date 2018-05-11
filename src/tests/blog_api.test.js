@@ -3,7 +3,11 @@ const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
-const { initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog, newUser, blogsInDb, usersInDb } = require('./test_helper')
+const {
+  initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog,
+  newUser, secondUser, newUserWithoutPassword, newUserWithoutAdultInfo,
+  blogsInDb, usersInDb
+} = require('./test_helper')
 
 describe('when blog api is called by get', async () => {
 
@@ -162,8 +166,8 @@ describe('when blog api is called by put', async () => {
 describe('when user api is called by get', async () => {
   beforeAll(async () => {
     await User.remove({})
-    const user = new User(newUser)
-    await user.save()
+    const users = [newUser, secondUser].map(user => new User(user))
+    await Promise.all(users.map(user => user.save()))
   })
 
   test('all users are returned as json by API', async () => {
@@ -184,37 +188,60 @@ describe('when user api is called by get', async () => {
 })
 
 describe('when user api is called by post', async () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await User.remove({})
-    const user = new User(newUser)
-    await user.save()
   })
 
-  test('and there is initially one user at db', async () => {
+  test('new user will be created', async () => {
     const usersBeforeOperation = await usersInDb()
-
-    const secondUser = {
-      username: 'battlebeast',
-      name: 'Noora Louhimo',
-      password: 'password'
-    }
 
     await api
       .post('/api/users')
-      .send(secondUser)
+      .send(newUser)
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
     const usersAfterOperation = await usersInDb()
     expect(usersAfterOperation.length).toBe(usersBeforeOperation.length + 1)
     const usernames = usersAfterOperation.map(u => u.username)
-    expect(usernames).toContain(secondUser.username)
+    expect(usernames).toContain(newUser.username)
+  })
+
+  test('new user gets default adult information', async () => {
+
+    await api
+      .post('/api/users')
+      .send(newUserWithoutAdultInfo)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const usersAfterOperation = await usersInDb()
+    expect(usersAfterOperation.length).toBe(1)
+    const adultInfo = usersAfterOperation[0].adult
+    expect(adultInfo).toBe(true)
   })
 
   test('fails if same user exists at db', async () => {
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const result = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(result.body).toEqual({ error: 'username must be unique' })
+  })
+
+  test('fails if password is invalid', async () => {
     const usersBeforeOperation = await usersInDb()
 
-    const sameUser = Object.assign({}, newUser)
+    const sameUser = Object.assign({}, newUserWithoutPassword)
 
     const result = await api
       .post('/api/users')
@@ -222,7 +249,7 @@ describe('when user api is called by post', async () => {
       .expect(400)
       .expect('Content-Type', /application\/json/)
 
-    expect(result.body).toEqual({ error: 'username must be unique' })
+    expect(result.body).toEqual({ error: 'invalid password' })
     const usersAfterOperation = await usersInDb()
     expect(usersAfterOperation.length).toBe(usersBeforeOperation.length)
   })

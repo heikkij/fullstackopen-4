@@ -16,13 +16,16 @@ usersRouter.post('/', async (request, response) => {
     if (existingUser.length > 0) {
       return response.status(400).json({ error: 'username must be unique' })
     }
+    if (request.body.password === undefined || request.body.password.length < 3 ) {
+      return response.status(400).json({ error: 'invalid password' })
+    }
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(request.body.password, saltRounds)
     const user = new User({
       username: request.body.username,
       name: request.body.name,
       passwordHash,
-      adult: request.body.adult || false,
+      adult: request.body.adult || true,
     })
     const savedUser = await user.save()
     response.status(201).json(savedUser)

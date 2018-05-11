@@ -69,6 +69,28 @@ const newUser =
     adult: true,
   }
 
+const secondUser =
+  {
+    username: 'battlebeast',
+    name: 'Noora Louhimo',
+    password: 'password',
+    adult: true,
+  }
+
+const newUserWithoutPassword =
+  {
+    username: 'hanoirocks',
+    name: 'Michael Monroe',
+    adult: false,
+  }
+
+const newUserWithoutAdultInfo =
+  {
+    username: 'majkarma',
+    name: 'Herra Ylppö',
+    password: 'password',
+  }
+
 const blogsInDb = async () => {
   const blogs = await Blog.find({})
   return blogs
@@ -87,5 +109,8 @@ module.exports = {
   newNoUrlBlog,
   blogsInDb,
   newUser,
+  secondUser,
+  newUserWithoutPassword,
+  newUserWithoutAdultInfo,
   usersInDb,
 }

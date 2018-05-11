@@ -37,6 +37,7 @@ module.exports = {
     "expect": true,
     "describe": true,
     "beforeAll": true,
+    "beforeEach": true,
     "afterAll": true
   }
 };
