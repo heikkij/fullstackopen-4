@@ -69,14 +69,6 @@ const newUser =
     adult: true,
   }
 
-const secondUser =
-  {
-    username: 'battlebeast',
-    name: 'Noora Louhimo',
-    password: 'password',
-    adult: true,
-  }
-
 const newUserWithoutPassword =
   {
     username: 'hanoirocks',
@@ -109,7 +101,7 @@ module.exports = {
   newNoUrlBlog,
   blogsInDb,
   newUser,
-  secondUser,
+  newUser,
   newUserWithoutPassword,
   newUserWithoutAdultInfo,
   usersInDb,
