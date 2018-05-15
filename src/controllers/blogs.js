@@ -52,7 +52,7 @@ blogsRouter.post('/', async (request, response) => {
     } else {
       console.log(exception)
       response.status(500).json({ error: 'save failed' })
-      }
+    }
   }
 })
 
