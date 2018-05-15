@@ -1,6 +1,16 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const config = require('../utils/config')
+const jwt = require('jsonwebtoken')
+
+const getTokenFrom = (request) => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    return authorization.substring(7)
+  }
+  return null
+}
 
 blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({})
@@ -10,6 +20,11 @@ blogsRouter.get('/', async (request, response) => {
 
 blogsRouter.post('/', async (request, response) => {
   try {
+    const token = getTokenFrom(request)
+    const decodedToken = jwt.verify(token, config.secret)
+    if (!token || !decodedToken.id) {
+      return response.status(401).json({ error: 'token missing or invalid' })
+    }
     if (request.body.title === undefined) {
       return response.status(400).json({ error: 'title missing' })
     }
@@ -19,8 +34,7 @@ blogsRouter.post('/', async (request, response) => {
     if (request.body.likes === undefined) {
       request.body['likes'] = 0
     }
-    const users = await User.find({})
-    const user = users[0]
+    const user = await User.findById(decodedToken.id)
     const blog = new Blog({
       title: request.body['title'],
       author: request.body['author'],
@@ -33,8 +47,12 @@ blogsRouter.post('/', async (request, response) => {
     await user.save()
     response.status(201).json(Blog.format(savedBlog))
   } catch (exception) {
-    console.log(exception)
-    response.status(500).json({ error: 'save failed' })
+    if (exception.name === 'JsonWebTokenError') {
+      response.status(401).json({ error: exception.message })
+    } else {
+      console.log(exception)
+      response.status(500).json({ error: 'save failed' })
+      }
   }
 })
 
