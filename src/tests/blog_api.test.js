@@ -36,17 +36,29 @@ describe('when blog api is called by get', async () => {
 
 describe('when blog api is called by post', async () => {
 
+  let token
+
   beforeAll(async () => {
-    await Blog.remove({})
     await User.remove({})
-    const user = new User(newUser)
-    await user.save()
+
+    await api.post('/api/users').send(newUser)
+
+    const loginResponse = await api.post('/api/login')
+      .send({
+        'username': `${newUser.username}`,
+        'password': `${newUser.password}`,
+      })
+    token = loginResponse.body.token
+
+    await Blog.remove({})
+
   })
 
   test('valid blog is saved', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
+      .set({ 'Authorization': `bearer ${token}` })
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -62,6 +74,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
+      .set({ 'Authorization': `bearer ${token}` })
       .send(newNoLikesBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -77,6 +90,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
+      .set({ 'Authorization': `bearer ${token}` })
       .send(newNoTitleBlog)
       .expect(400)
 
@@ -88,6 +102,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
+      .set({ 'Authorization': `bearer ${token}` })
       .send(newNoUrlBlog)
       .expect(400)
 
