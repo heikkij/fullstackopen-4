@@ -101,7 +101,6 @@ module.exports = {
   newNoUrlBlog,
   blogsInDb,
   newUser,
-  newUser,
   newUserWithoutPassword,
   newUserWithoutAdultInfo,
   usersInDb,

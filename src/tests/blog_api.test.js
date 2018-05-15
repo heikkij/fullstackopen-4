@@ -38,6 +38,9 @@ describe('when blog api is called by post', async () => {
 
   beforeAll(async () => {
     await Blog.remove({})
+    await User.remove({})
+    const user = new User(newUser)
+    await user.save()
   })
 
   test('valid blog is saved', async () => {

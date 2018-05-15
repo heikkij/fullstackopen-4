@@ -21,7 +21,6 @@ blogsRouter.post('/', async (request, response) => {
     }
     const users = await User.find({})
     const user = users[0]
-    console.log(user)
     const blog = new Blog({
       title: request.body['title'],
       author: request.body['author'],
