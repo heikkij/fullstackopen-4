@@ -13,6 +13,7 @@ const config = require('./utils/config')
 app.use(cors())
 app.use(bodyParser.json())
 
+app.use(middleware.tokenExtractor)
 app.use(middleware.logger)
 
 app.use('/api/login', loginRouter)
