@@ -3,9 +3,13 @@ const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const config = require('../utils/config')
+const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
+
 const {
   initialBlogs, newBlog, newNoLikesBlog, newNoTitleBlog, newNoUrlBlog,
-  newUser, secondUser, newUserWithoutPassword, newUserWithoutAdultInfo,
+  newUser, newUser2, newUserWithoutPassword, newUserWithoutAdultInfo,
   blogsInDb, usersInDb
 } = require('./test_helper')
 
@@ -36,9 +40,10 @@ describe('when blog api is called by get', async () => {
 
 describe('when blog api is called by post', async () => {
 
-  let token
+  let newUserToken
 
   beforeAll(async () => {
+    await Blog.remove({})
     await User.remove({})
 
     await api.post('/api/users').send(newUser)
@@ -48,9 +53,7 @@ describe('when blog api is called by post', async () => {
         'username': `${newUser.username}`,
         'password': `${newUser.password}`,
       })
-    token = loginResponse.body.token
-
-    await Blog.remove({})
+    newUserToken = loginResponse.body.token
 
   })
 
@@ -58,7 +61,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
-      .set({ 'Authorization': `bearer ${token}` })
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -74,7 +77,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
-      .set({ 'Authorization': `bearer ${token}` })
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .send(newNoLikesBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -90,7 +93,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
-      .set({ 'Authorization': `bearer ${token}` })
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .send(newNoTitleBlog)
       .expect(400)
 
@@ -102,7 +105,7 @@ describe('when blog api is called by post', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.post('/api/blogs')
-      .set({ 'Authorization': `bearer ${token}` })
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .send(newNoUrlBlog)
       .expect(400)
 
@@ -114,28 +117,70 @@ describe('when blog api is called by post', async () => {
 
 describe('when blog api is called by delete', async () => {
 
-  const testId = '5af1244ed0a939f7e4681785'
+  const testBlogId = '5afcff4b0a1d72218cfdb05b'
   const invalidId = '5af44c60d77e1414e021bf8b'
 
+  let newUserToken
+  let newUserToken2
+
   beforeAll(async () => {
-    newBlog._id = testId
     await Blog.remove({})
-    const blogs = initialBlogs.concat(newBlog).map(blog => new Blog(blog))
-    await Promise.all(blogs.map(blog => blog.save()))
+    await User.remove({})
+
+    await api.post('/api/users').send(newUser)
+
+    const loginResponse = await api.post('/api/login')
+      .send({
+        'username': `${newUser.username}`,
+        'password': `${newUser.password}`,
+      })
+    const loginResponse2 = await api.post('/api/login')
+      .send({
+        'username': `${newUser2.username}`,
+        'password': `${newUser2.password}`,
+      })
+
+    newUserToken = loginResponse.body.token
+    newUserToken2 = loginResponse2.body.token
+    const decodedToken = jwt.verify(loginResponse.body.token, config.secret)
+
+    const test_blog_id = mongoose.Types.ObjectId(testBlogId)
+    const new_user_id = mongoose.Types.ObjectId(decodedToken.id)
+
+    const blog = Blog({
+      _id: test_blog_id,
+      title: 'Test Blog',
+      author: 'Donald D. Uck',
+      url: 'http://blog.org/uncle-uck/TestBlog.html',
+      user: new_user_id,
+    })
+    await blog.save()
+
   })
 
   test('blog is deleted', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
-    await api.delete(`/api/blogs/${testId}`)
+    await api.delete(`/api/blogs/${testBlogId}`)
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .expect(204)
 
     const blogInDatabaseAfter = await blogsInDb()
 
-    const titles = blogInDatabaseAfter.map(r => r.title)
-
-    expect(titles).not.toContain(newBlog.title)
     expect(blogInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length - 1)
+
+  })
+
+  test('blog is not deleted with wrong user', async () => {
+    const blogsInDatabaseBefore = await blogsInDb()
+
+    await api.delete(`/api/blogs/${testBlogId}`)
+      .set({ 'Authorization': `bearer ${newUserToken2}` })
+      .expect(400)
+
+    const blogInDatabaseAfter = await blogsInDb()
+
+    expect(blogInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length)
 
   })
 
@@ -143,7 +188,20 @@ describe('when blog api is called by delete', async () => {
     const blogsInDatabaseBefore = await blogsInDb()
 
     await api.delete(`/api/blogs/${invalidId}`)
+      .set({ 'Authorization': `bearer ${newUserToken}` })
       .expect(404)
+
+    const blogInDatabaseAfter = await blogsInDb()
+
+    expect(blogInDatabaseAfter.length).toBe(blogsInDatabaseBefore.length)
+
+  })
+
+  test('blog is not deleted with invalid auth', async () => {
+    const blogsInDatabaseBefore = await blogsInDb()
+
+    await api.delete(`/api/blogs/${testBlogId}`)
+      .expect(400)
 
     const blogInDatabaseAfter = await blogsInDb()
 
@@ -184,7 +242,7 @@ describe('when blog api is called by put', async () => {
 describe('when user api is called by get', async () => {
   beforeAll(async () => {
     await User.remove({})
-    const users = [newUser, secondUser].map(user => new User(user))
+    const users = [newUser, newUser2].map(user => new User(user))
     await Promise.all(users.map(user => user.save()))
   })
 
